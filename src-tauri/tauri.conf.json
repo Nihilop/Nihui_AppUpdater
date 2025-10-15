@@ -1,0 +1,74 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Nihui Addon Updater",
+  "version": "0.1.0",
+  "identifier": "com.nihilop.nihui-updater",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "Nihui Addon Updater",
+        "width": 418,
+        "height": 518,
+        "minWidth": 418,
+        "minHeight": 518,
+        "decorations": false,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "resizable": false,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "main-capability",
+          "windows": ["main"],
+          "permissions": [
+            "core:default",
+            "core:app:default",
+            "core:app:allow-default-window-icon",
+            "core:window:default",
+            "core:window:allow-show",
+            "core:window:allow-hide",
+            "core:window:allow-set-focus",
+            "core:window:allow-start-dragging",
+            "core:tray:default",
+            "core:menu:default",
+            "core:image:default",
+            "core:image:allow-from-path",
+            "notification:default",
+            "notification:allow-request-permission",
+            "notification:allow-is-permission-granted",
+            "notification:allow-show",
+            "autostart:default",
+            "autostart:allow-enable",
+            "autostart:allow-disable",
+            "autostart:allow-is-enabled"
+          ]
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/**/*"
+    ]
+  }
+}
