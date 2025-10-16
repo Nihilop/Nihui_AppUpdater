@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Nihui Addon Updater",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "identifier": "com.nihilop.nihui-updater",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -32,7 +32,9 @@
       "capabilities": [
         {
           "identifier": "main-capability",
-          "windows": ["main"],
+          "windows": [
+            "main"
+          ],
           "permissions": [
             "core:default",
             "core:app:default",
