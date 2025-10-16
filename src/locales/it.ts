@@ -74,4 +74,17 @@ export default {
     allUpToDate: 'Tutti gli addon sono aggiornati',
     quit: 'Esci',
   },
+  updater: {
+    updateAvailable: 'Aggiornamento disponibile',
+    updateAvailableDesc: 'Una nuova versione di Nihui Addon Updater è disponibile',
+    currentVersion: 'Versione attuale',
+    newVersion: 'Nuova versione',
+    downloadAndInstall: 'Scarica e installa',
+    installing: 'Installazione...',
+    skipVersion: 'Salta questa versione',
+    remindLater: 'Ricordamelo più tardi',
+    checkingForUpdates: 'Ricerca aggiornamenti...',
+    upToDate: 'Stai usando l\'ultima versione',
+    checkFailed: 'Errore nella ricerca aggiornamenti',
+  },
 };

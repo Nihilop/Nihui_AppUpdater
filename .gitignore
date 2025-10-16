@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Tauri
+src-tauri/target
+src-tauri/WixTools
+
+# Signing keys - NEVER COMMIT PRIVATE KEYS!
+src-tauri/tauri.keypai
+src-tauri/*.key
+src-tauri/*.pem

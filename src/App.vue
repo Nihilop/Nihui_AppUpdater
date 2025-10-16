@@ -12,8 +12,11 @@ import WowStatus from './components/blocks/WowStatus.vue';
 import AddonListItem from './components/blocks/AddonListItem.vue';
 import SettingsModal from './components/blocks/SettingsModal.vue';
 import AddonConfigModal from './components/blocks/AddonConfigModal.vue';
+import UpdateDialog from './components/blocks/UpdateDialog.vue';
 import { Menu, MenuItem } from '@tauri-apps/api/menu';
 import { enable as enableAutostart, disable as disableAutostart, isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
+import { check as checkUpdate } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 // ===========================
 // I18N
@@ -40,6 +43,12 @@ const isScanning = ref(false);
 const showSettingsModal = ref(false);
 const showAddonConfigModal = ref(false);
 const selectedAddon = ref<AddonStatus | null>(null);
+
+// App updater state
+const showUpdateDialog = ref(false);
+const appCurrentVersion = ref('0.1.0');
+const appNewVersion = ref('');
+let pendingUpdate: any = null;
 
 // Tray icon reference
 let trayIcon: TrayIcon | null = null;
@@ -239,6 +248,11 @@ onMounted(async () => {
 
   // Start auto-check timer (checks every hour by default)
   startAutoCheckTimer();
+
+  // Check for app updates (after a small delay)
+  setTimeout(() => {
+    checkForAppUpdate();
+  }, 3000);
 });
 
 onUnmounted(async () => {
@@ -710,6 +724,46 @@ async function onConfigSaved() {
   // Reload addons to update the list with new config
   await loadAddons();
 }
+
+// ===========================
+// APP AUTO-UPDATE
+// ===========================
+
+async function checkForAppUpdate() {
+  try {
+    const update = await checkUpdate();
+
+    if (update?.available) {
+      console.log(`App update available: ${update.version}`);
+      appNewVersion.value = update.version;
+      pendingUpdate = update;
+      showUpdateDialog.value = true;
+    } else {
+      console.log('App is up to date');
+    }
+  } catch (error) {
+    console.error('Failed to check for app updates:', error);
+  }
+}
+
+async function handleAppUpdate() {
+  if (!pendingUpdate) return;
+
+  try {
+    console.log('Downloading and installing update...');
+    await pendingUpdate.downloadAndInstall();
+
+    console.log('Update installed, relaunching...');
+    await relaunch();
+  } catch (error) {
+    console.error('Failed to install app update:', error);
+  }
+}
+
+function handleUpdateRemindLater() {
+  showUpdateDialog.value = false;
+  pendingUpdate = null;
+}
 </script>
 
 <template>
@@ -772,6 +826,15 @@ async function onConfigSaved() {
       v-model:open="showAddonConfigModal"
       :addon="selectedAddon"
       @config-saved="onConfigSaved"
+    />
+
+    <!-- App Update Dialog -->
+    <UpdateDialog
+      v-model:open="showUpdateDialog"
+      :current-version="appCurrentVersion"
+      :new-version="appNewVersion"
+      @download-and-install="handleAppUpdate"
+      @remind-later="handleUpdateRemindLater"
     />
   </div>
 </template>

@@ -8,5 +8,14 @@
     "opener:default",
     "notification:default",
     "opener:allow-open-path"
-  ]
+  ],
+  "scope": {
+    "open": {
+      "allow": [
+        {
+          "url": "https://github.com/*"
+        }
+      ]
+    }
+  }
 }
