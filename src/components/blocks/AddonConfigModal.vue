@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ExternalLink } from 'lucide-vue-next';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { marked } from 'marked';
 import { TauriAPI } from '@/services/tauri';
+
+const { t } = useI18n();
 import {
   Dialog,
   DialogContent,
@@ -56,12 +59,12 @@ const statusBadgeClass = computed(() => {
 });
 
 const statusText = computed(() => {
-  if (!props.addon) return 'Unknown';
-  if (props.addon.status === 'up-to-date') return 'Up to date';
-  if (props.addon.status === 'update-available') return 'Update available';
-  if (props.addon.status === 'checking') return 'Checking...';
-  if (!props.addon.is_installed) return 'Not installed';
-  return 'Unknown';
+  if (!props.addon) return t('addons.error');
+  if (props.addon.status === 'up-to-date') return t('addons.upToDate');
+  if (props.addon.status === 'update-available') return t('addons.updateAvailable');
+  if (props.addon.status === 'checking') return t('addons.checking');
+  if (!props.addon.is_installed) return t('addons.notInstalled');
+  return t('addons.error');
 });
 
 const openGithubRepo = async () => {
@@ -71,7 +74,7 @@ const openGithubRepo = async () => {
 };
 
 const readmeHtml = computed(() => {
-  if (!readme.value) return '<p class="text-muted-foreground text-sm">No README available</p>';
+  if (!readme.value) return `<p class="text-muted-foreground text-sm">${t('addonConfig.noReadme')}</p>`;
   return marked(readme.value);
 });
 
@@ -180,7 +183,7 @@ watch(() => props.addon, async (newAddon) => {
       <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         <!-- GitHub Info -->
         <div class="space-y-2">
-          <h4 class="text-sm font-semibold text-foreground">Repository</h4>
+          <h4 class="text-sm font-semibold text-foreground">{{ t('addonConfig.repository') }}</h4>
           <Button
             variant="outline"
             class="w-full justify-start"
@@ -195,18 +198,18 @@ watch(() => props.addon, async (newAddon) => {
 
         <!-- Version Info -->
         <div class="space-y-2">
-          <h4 class="text-sm font-semibold text-foreground">Versions</h4>
+          <h4 class="text-sm font-semibold text-foreground">{{ t('addonConfig.versions') }}</h4>
           <div class="grid grid-cols-2 gap-3">
             <div class="p-3 bg-muted rounded-lg">
-              <p class="text-xs text-muted-foreground mb-1">Local</p>
+              <p class="text-xs text-muted-foreground mb-1">{{ t('addonConfig.localVersion') }}</p>
               <p class="text-sm font-medium">
-                {{ addon.local_info?.version || 'Not installed' }}
+                {{ addon.local_info?.version || t('addonConfig.notInstalled') }}
               </p>
             </div>
             <div class="p-3 bg-muted rounded-lg">
-              <p class="text-xs text-muted-foreground mb-1">Remote</p>
+              <p class="text-xs text-muted-foreground mb-1">{{ t('addonConfig.remoteVersion') }}</p>
               <p class="text-sm font-medium">
-                {{ addon.remote_version || 'Unknown' }}
+                {{ addon.remote_version || t('addonConfig.unknown') }}
               </p>
             </div>
           </div>
@@ -216,31 +219,31 @@ watch(() => props.addon, async (newAddon) => {
 
         <!-- Update Configuration -->
         <div class="space-y-3">
-          <h4 class="text-sm font-semibold text-foreground">Update Configuration</h4>
+          <h4 class="text-sm font-semibold text-foreground">{{ t('addonConfig.updateConfiguration') }}</h4>
 
           <!-- Update Mode Select -->
           <div class="space-y-2">
-            <Label class="text-sm text-muted-foreground">Update Mode</Label>
+            <Label class="text-sm text-muted-foreground">{{ t('addonConfig.updateMode') }}</Label>
             <Select v-model="updateMode">
               <SelectTrigger>
-                <SelectValue placeholder="Select update mode" />
+                <SelectValue :placeholder="t('addonConfig.updateMode')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="release">Release</SelectItem>
-                <SelectItem value="branch">Branch</SelectItem>
+                <SelectItem value="release">{{ t('addonConfig.updateModeRelease') }}</SelectItem>
+                <SelectItem value="branch">{{ t('addonConfig.updateModeBranch') }}</SelectItem>
               </SelectContent>
             </Select>
             <p class="text-xs text-muted-foreground">
-              {{ updateMode === 'release' ? 'Update from latest GitHub release' : 'Update from a specific branch' }}
+              {{ updateMode === 'release' ? t('addonConfig.updateModeReleaseDesc') : t('addonConfig.updateModeBranchDesc') }}
             </p>
           </div>
 
           <!-- Branch Select (only if branch mode) -->
           <div v-if="updateMode === 'branch'" class="space-y-2">
-            <Label class="text-sm text-muted-foreground">Branch</Label>
+            <Label class="text-sm text-muted-foreground">{{ t('addonConfig.branch') }}</Label>
             <Select v-model="selectedBranch" :disabled="isLoadingBranches">
               <SelectTrigger>
-                <SelectValue :placeholder="isLoadingBranches ? 'Loading branches...' : 'Select branch'" />
+                <SelectValue :placeholder="isLoadingBranches ? t('addonConfig.loadingBranches') : t('addonConfig.branchPlaceholder')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="branch in availableBranches" :key="branch" :value="branch">
@@ -249,7 +252,7 @@ watch(() => props.addon, async (newAddon) => {
               </SelectContent>
             </Select>
             <p class="text-xs text-muted-foreground">
-              Current: {{ selectedBranch }}
+              {{ t('addonConfig.branchCurrent') }}: {{ selectedBranch }}
             </p>
           </div>
         </div>
@@ -258,9 +261,9 @@ watch(() => props.addon, async (newAddon) => {
 
         <!-- README -->
         <div class="space-y-2">
-          <h4 class="text-sm font-semibold text-foreground">Documentation</h4>
+          <h4 class="text-sm font-semibold text-foreground">{{ t('addonConfig.documentation') }}</h4>
           <div v-if="isLoadingReadme" class="p-4 bg-muted rounded-lg">
-            <p class="text-sm text-muted-foreground">Loading README...</p>
+            <p class="text-sm text-muted-foreground">{{ t('addonConfig.loadingReadme') }}</p>
           </div>
           <div
             v-else
@@ -278,7 +281,7 @@ watch(() => props.addon, async (newAddon) => {
             @click="emit('update:open', false)"
             class="flex-1"
           >
-            Close
+            {{ t('addonConfig.close') }}
           </Button>
           <Button
             type="button"
@@ -286,7 +289,7 @@ watch(() => props.addon, async (newAddon) => {
             :disabled="!hasUnsavedChanges || isSaving"
             class="flex-1"
           >
-            {{ isSaving ? 'Saving...' : 'Save Configuration' }}
+            {{ isSaving ? t('addonConfig.saving') : t('addonConfig.save') }}
           </Button>
         </div>
       </DialogFooter>

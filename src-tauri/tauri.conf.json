@@ -18,10 +18,12 @@
         "height": 518,
         "minWidth": 418,
         "minHeight": 518,
+        "maxWidth": 836,
+        "maxHeight": 1036,
         "decorations": false,
         "transparent": true,
         "titleBarStyle": "Overlay",
-        "resizable": false,
+        "resizable": true,
         "fullscreen": false
       }
     ],
@@ -51,7 +53,8 @@
             "autostart:default",
             "autostart:allow-enable",
             "autostart:allow-disable",
-            "autostart:allow-is-enabled"
+            "autostart:allow-is-enabled",
+            "opener:allow-open-path"
           ]
         }
       ]
@@ -70,5 +73,14 @@
     "resources": [
       "resources/**/*"
     ]
+  },
+  "plugins": {
+    "opener": {
+      "scope": [
+        {
+          "url": "https://github.com/*"
+        }
+      ]
+    }
   }
 }

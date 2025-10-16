@@ -3,6 +3,7 @@ import { TrayIcon } from '@tauri-apps/api/tray';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Image } from '@tauri-apps/api/image';
 import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { TauriAPI } from './services/tauri';
 import { NotificationService } from './services/notification';
 import type { AppConfig, AddonDefinition, AddonStatus } from './types';
@@ -15,12 +16,20 @@ import { Menu, MenuItem } from '@tauri-apps/api/menu';
 import { enable as enableAutostart, disable as disableAutostart, isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 
 // ===========================
+// I18N
+// ===========================
+
+const { locale, t } = useI18n();
+
+// ===========================
 // STATE
 // ===========================
 
 const config = ref<AppConfig>({
   wow_path: null,
   launch_on_startup: true,
+  minimize_on_startup: true,
+  language: 'en',
   addon_overrides: {},
 });
 
@@ -598,6 +607,36 @@ async function loadConfig() {
     const loadedConfig = await TauriAPI.loadConfig();
     config.value = loadedConfig;
 
+    // Detect system language only if not configured (first launch)
+    let languageToUse = loadedConfig.language;
+
+    if (!languageToUse) {
+      // First launch: detect browser/system language
+      const browserLang = navigator.language.toLowerCase();
+
+      // Map browser language to supported locales
+      if (browserLang.startsWith('fr')) {
+        languageToUse = 'fr';
+      } else if (browserLang.startsWith('es')) {
+        languageToUse = 'es';
+      } else if (browserLang.startsWith('de')) {
+        languageToUse = 'de';
+      } else if (browserLang.startsWith('it')) {
+        languageToUse = 'it';
+      } else if (browserLang.startsWith('pt')) {
+        languageToUse = 'pt';
+      } else {
+        languageToUse = 'en'; // Default fallback
+      }
+
+      // Save detected language to config
+      config.value.language = languageToUse;
+      await saveConfig();
+    }
+
+    // Apply language
+    locale.value = languageToUse;
+
     // Check the REAL autostart state from Windows Registry
     try {
       const actualAutostartState = await isAutostartEnabled();
@@ -626,6 +665,33 @@ async function updateLaunchOnStartup(enabled: boolean) {
     console.error('Failed to update autostart:', error);
     // Revert the UI state if the operation failed
     config.value.launch_on_startup = !enabled;
+  }
+}
+
+async function updateMinimizeOnStartup(enabled: boolean) {
+  try {
+    // Update config to reflect the change
+    config.value.minimize_on_startup = enabled;
+    await saveConfig();
+  } catch (error) {
+    console.error('Failed to update minimize on startup:', error);
+    // Revert the UI state if the operation failed
+    config.value.minimize_on_startup = !enabled;
+  }
+}
+
+async function updateLanguage(newLanguage: string) {
+  try {
+    // Update locale
+    locale.value = newLanguage;
+    // Update config
+    config.value.language = newLanguage;
+    await saveConfig();
+  } catch (error) {
+    console.error('Failed to update language:', error);
+    // Revert if save failed
+    const previousLanguage = config.value.language;
+    locale.value = previousLanguage;
   }
 }
 
@@ -663,11 +729,11 @@ async function onConfigSaved() {
       <!-- Addons List -->
       <div v-if="hasWowPath" class="space-y-2">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-semibold text-foreground">Addons</h2>
+          <h2 class="text-lg font-semibold text-foreground">{{ t('addons.title') }}</h2>
           <div class="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{{ installedCount }} / {{ addonDefinitions.length }} installed</span>
+            <span>{{ installedCount }} / {{ addonDefinitions.length }} {{ t('addons.installed') }}</span>
             <span v-if="updateAvailableCount > 0" class="text-[--status-idle]">
-              • {{ updateAvailableCount }} updates
+              • {{ updateAvailableCount }} {{ t('addons.updates') }}
             </span>
           </div>
         </div>
@@ -691,10 +757,14 @@ async function onConfigSaved() {
       :auto-scan-results="autoScanResults"
       :is-scanning="isScanning"
       :launch-on-startup="config.launch_on_startup"
+      :minimize-on-startup="config.minimize_on_startup"
+      :language="config.language"
       @select-path="selectWowPath"
       @validate-manual-path="validateManualPath"
       @auto-scan="autoScanWowPath"
       @update:launchOnStartup="updateLaunchOnStartup"
+      @update:minimizeOnStartup="updateMinimizeOnStartup"
+      @update:language="updateLanguage"
     />
 
     <!-- Addon Config Modal -->

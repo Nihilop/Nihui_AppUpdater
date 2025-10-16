@@ -10,6 +10,8 @@ export interface AddonOverride {
 export interface AppConfig {
   wow_path: string | null;
   launch_on_startup: boolean;
+  minimize_on_startup: boolean;
+  language: string;
   addon_overrides: Record<string, AddonOverride>;
 }
 

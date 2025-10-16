@@ -153,8 +153,33 @@
   --status-online: oklch(0.632 0.177 145.385);
   --status-idle: oklch(0.728 0.156 82.209);
   --status-offline: oklch(0.578 0.215 23.364);
+  --sb-track-color: var(--background);
+  --sb-thumb-color: var(--primary);
+  --sb-size: 5px;
 }
 
 *[data-tauri-drag-region] {
   app-region: drag;
+}
+
+*::-webkit-scrollbar {
+  width: var(--sb-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--sb-track-color);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 3px;
+
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--sb-thumb-color)
+    var(--sb-track-color);
+  }
 }

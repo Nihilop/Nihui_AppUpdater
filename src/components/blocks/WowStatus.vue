@@ -1,7 +1,10 @@
-green-400<script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { HardDrive, Settings } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+
+const { t } = useI18n();
 
 interface Props {
   wowPath: string | null;
@@ -20,9 +23,9 @@ const statusColor = computed(() => {
 });
 
 const statusText = computed(() => {
-  if (props.isScanning) return 'Scanning...';
-  if (props.wowPath) return 'Connected';
-  return 'Not configured';
+  if (props.isScanning) return t('settings.scanning');
+  if (props.wowPath) return t('wowStatus.pathConfigured');
+  return t('wowStatus.noPath');
 });
 </script>
 

@@ -24,12 +24,24 @@ pub struct AppConfig {
     pub wow_path: Option<String>,
     #[serde(default = "default_launch_on_startup")]
     pub launch_on_startup: bool,
+    #[serde(default = "default_minimize_on_startup")]
+    pub minimize_on_startup: bool,
+    #[serde(default = "default_language")]
+    pub language: String,
     #[serde(default)]
     pub addon_overrides: HashMap<String, AddonOverride>,
 }
 
 fn default_launch_on_startup() -> bool {
     true
+}
+
+fn default_minimize_on_startup() -> bool {
+    true
+}
+
+fn default_language() -> String {
+    "".to_string() // Empty string = auto-detect system language in frontend
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -344,6 +356,8 @@ fn load_config() -> Result<AppConfig, String> {
         return Ok(AppConfig {
             wow_path: None,
             launch_on_startup: true,
+            minimize_on_startup: true,
+            language: "en".to_string(),
             addon_overrides: HashMap::new(),
         });
     }
@@ -395,6 +409,8 @@ fn save_addon_override(
     let mut config = load_config().unwrap_or(AppConfig {
         wow_path: None,
         launch_on_startup: true,
+        minimize_on_startup: true,
+        language: "en".to_string(),
         addon_overrides: HashMap::new(),
     });
 
@@ -844,6 +860,25 @@ fn main() {
             install_addon,
             quit_app,
         ])
+        .setup(|app| {
+            // Check if app was launched with --minimized flag
+            let args: Vec<String> = std::env::args().collect();
+            let launched_minimized = args.iter().any(|arg| arg == "--minimized");
+
+            if launched_minimized {
+                // Load config to check minimize_on_startup setting
+                if let Ok(config) = load_config() {
+                    if config.minimize_on_startup {
+                        // Hide the main window on startup
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                    }
+                }
+            }
+
+            Ok(())
+        })
         .on_window_event(|window, event| {
             match event {
                 tauri::WindowEvent::CloseRequested { api, .. } => {
