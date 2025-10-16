@@ -111,6 +111,15 @@ fn get_addon_definitions() -> Vec<AddonDefinition> {
             branch: Some("main".to_string()),
         },
         AddonDefinition {
+            local_name: "Nihui_chat".to_string(),
+            nice_name: "Nihui Chatbox".to_string(),
+            github_owner: "Nihilop".to_string(),
+            github_repo: "Nihui_chat".to_string(),
+            description: "Chatbox addon".to_string(),
+            update_mode: UpdateMode::Branch,
+            branch: Some("main".to_string()),
+        },
+        AddonDefinition {
             local_name: "WaypointUI".to_string(),
             nice_name: "Waypoint UI".to_string(),
             github_owner: "Adaptvx".to_string(),
@@ -840,6 +849,35 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
 }
 
 // ===========================
+// ADDON UNINSTALLATION
+// ===========================
+
+/// Uninstall an addon by removing its directory
+#[tauri::command]
+fn uninstall_addon(
+    wow_path: String,
+    addon_name: String,
+) -> Result<String, String> {
+    // Build path to addon directory
+    let addon_path = PathBuf::from(&wow_path)
+        .join("_retail_")
+        .join("Interface")
+        .join("AddOns")
+        .join(&addon_name);
+
+    // Check if addon exists
+    if !addon_path.exists() {
+        return Err(format!("Addon '{}' is not installed", addon_name));
+    }
+
+    // Remove addon directory
+    fs::remove_dir_all(&addon_path)
+        .map_err(|e| format!("Failed to uninstall addon: {}", e))?;
+
+    Ok(format!("Successfully uninstalled {}", addon_name))
+}
+
+// ===========================
 // MAIN
 // ===========================
 
@@ -866,6 +904,7 @@ fn main() {
             fetch_github_readme,
             get_tray_icon_path,
             install_addon,
+            uninstall_addon,
             quit_app,
             get_app_version,
         ])

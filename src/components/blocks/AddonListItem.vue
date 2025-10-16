@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Download, RefreshCw, ArrowUp, Settings2 } from 'lucide-vue-next';
+import { Download, RefreshCw, ArrowUp, Settings2, Trash2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { AddonStatus } from '@/types';
@@ -15,6 +15,7 @@ const emit = defineEmits<{
   update: [];
   check: [];
   configure: [];
+  uninstall: [];
 }>();
 
 const statusBadgeClass = computed(() => {
@@ -69,6 +70,17 @@ const statusBadgeClass = computed(() => {
         @click="emit('update')"
       >
         <ArrowUp :size="16" />
+      </Button>
+
+      <!-- Uninstall button (if installed) -->
+      <Button
+        v-if="addon.is_installed"
+        variant="ghost"
+        size="icon"
+        class="h-8 w-8 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-all duration-500"
+        @click="emit('uninstall')"
+      >
+        <Trash2 :size="16" />
       </Button>
 
       <!-- Configure button -->

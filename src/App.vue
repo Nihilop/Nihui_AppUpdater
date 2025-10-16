@@ -13,6 +13,7 @@ import AddonListItem from './components/blocks/AddonListItem.vue';
 import SettingsModal from './components/blocks/SettingsModal.vue';
 import AddonConfigModal from './components/blocks/AddonConfigModal.vue';
 import UpdateDialog from './components/blocks/UpdateDialog.vue';
+import UninstallConfirmDialog from './components/blocks/UninstallConfirmDialog.vue';
 import { Menu, MenuItem } from '@tauri-apps/api/menu';
 import { enable as enableAutostart, disable as disableAutostart, isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import { check as checkUpdate } from '@tauri-apps/plugin-updater';
@@ -43,6 +44,10 @@ const isScanning = ref(false);
 const showSettingsModal = ref(false);
 const showAddonConfigModal = ref(false);
 const selectedAddon = ref<AddonStatus | null>(null);
+
+// Uninstall dialog state
+const showUninstallDialog = ref(false);
+const addonToUninstall = ref<AddonStatus | null>(null);
 
 // App updater state
 const showUpdateDialog = ref(false);
@@ -734,6 +739,48 @@ async function onConfigSaved() {
 }
 
 // ===========================
+// ADDON UNINSTALLATION
+// ===========================
+
+function openUninstallDialog(addon: AddonStatus) {
+  addonToUninstall.value = addon;
+  showUninstallDialog.value = true;
+}
+
+async function confirmUninstall() {
+  if (!config.value.wow_path || !addonToUninstall.value) {
+    console.error('WoW path or addon not configured');
+    showUninstallDialog.value = false;
+    return;
+  }
+
+  const addon = addonToUninstall.value;
+
+  try {
+    await TauriAPI.uninstallAddon(config.value.wow_path, addon.definition.local_name);
+
+    // Mark addon as updated so user can be notified if they reinstall
+    NotificationService.markAddonAsUpdated(addon.definition.local_name);
+
+    // Close dialog
+    showUninstallDialog.value = false;
+    addonToUninstall.value = null;
+
+    // Reload addons to update the list
+    await loadAddons();
+    await updateTrayStatus();
+  } catch (error) {
+    console.error('Failed to uninstall addon:', error);
+    // Keep dialog open to show error
+  }
+}
+
+function cancelUninstall() {
+  showUninstallDialog.value = false;
+  addonToUninstall.value = null;
+}
+
+// ===========================
 // APP AUTO-UPDATE
 // ===========================
 
@@ -808,6 +855,7 @@ function handleUpdateRemindLater() {
           @update="updateAddon(addon)"
           @check="checkSingleAddon(addon)"
           @configure="openAddonConfig(addon)"
+          @uninstall="openUninstallDialog(addon)"
         />
       </div>
     </div>
@@ -834,6 +882,15 @@ function handleUpdateRemindLater() {
       v-model:open="showAddonConfigModal"
       :addon="selectedAddon"
       @config-saved="onConfigSaved"
+    />
+
+    <!-- Uninstall Confirm Dialog -->
+    <UninstallConfirmDialog
+      v-model:open="showUninstallDialog"
+      :addon-name="addonToUninstall?.definition.local_name || ''"
+      :addon-nice-name="addonToUninstall?.definition.nice_name || ''"
+      @confirm="confirmUninstall"
+      @cancel="cancelUninstall"
     />
 
     <!-- App Update Dialog -->

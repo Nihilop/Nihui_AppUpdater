@@ -41,6 +41,14 @@ export default {
     configure: 'Configurar',
     localVersion: 'Local',
     remoteVersion: 'Remoto',
+    uninstall: {
+      title: 'Desinstalar addon',
+      description: '¿Estás seguro de que quieres desinstalar este addon?',
+      warning: 'Esta acción eliminará permanentemente el addon de tu instalación de WoW.',
+      confirm: 'Desinstalar',
+      cancel: 'Cancelar',
+      uninstalling: 'Desinstalando...',
+    },
   },
   addonConfig: {
     title: 'Configurar addon',

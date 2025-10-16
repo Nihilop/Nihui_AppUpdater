@@ -119,6 +119,13 @@ export const TauriAPI = {
   },
 
   /**
+   * Uninstall an addon by removing its directory
+   */
+  async uninstallAddon(wowPath: string, addonName: string): Promise<string> {
+    return await invoke<string>('uninstall_addon', { wowPath, addonName });
+  },
+
+  /**
    * Get the path to a tray icon resource
    */
   async getTrayIconPath(iconName: string): Promise<string> {
