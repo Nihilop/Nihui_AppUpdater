@@ -1,191 +1,205 @@
-# Nihui Addon Updater - Dev Notes
+# Nihui Addon Updater
 
-## 🏗️ Architecture
+<div align="center">
 
-### Backend (Rust/Tauri)
-- **Auto-scan WoW path** : Scanne automatiquement les chemins Battle.net courants
-- **Validation path** : Vérifie que le chemin contient `_retail_/Interface/AddOns`
-- **Lecture .toc** : Parse les fichiers `.toc` pour extraire `## Version:`
-- **Config management** : Sauvegarde/charge config dans `%APPDATA%/nihui_app/config.json`
-- **GitHub API** : Fetch releases ou branches avec comparaison de versions
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
 
-### Frontend (Vue.js + Tailwind)
-- **Settings** : Config chemin WoW (auto-scan + manuel)
-- **Update Checker** : Scan GitHub et comparaison versions
-- **Addon List** : Affichage status avec icônes
-- **Update Mode Toggle** : Switch entre Release/Branch
+A modern, lightweight addon updater for World of Warcraft built with Tauri and Vue.js
 
-## 📝 TODO Avant Premier Test
+[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Development](#development) • [Contributing](#contributing)
 
-### 1. Configuration GitHub (URGENT)
-Dans `src/App.vue`, lignes 15-16, remplace :
-```typescript
-github_owner: 'YOUR_GITHUB_USERNAME', // TODO: Replace
-github_repo: 'Nihui-Addons', // TODO: Replace
-```
+</div>
 
-Par tes vraies infos GitHub :
-```typescript
-github_owner: 'ton-username-github',
-github_repo: 'nom-de-ton-repo',
-```
+---
 
-### 2. Ajouter ## Version: aux .toc
-Le backend lit la version depuis les fichiers `.toc`. Assure-toi que **TOUS** tes addons ont cette ligne :
+## 📋 Overview
 
-```lua
-## Interface: 110002
-## Title: Nihui_iv
-## Version: 0.2.0  <-- IMPORTANT!
-## SavedVariables: NihuiIVDB
-```
+Nihui Addon Updater is a desktop application that automatically manages and updates your World of Warcraft addons directly from GitHub repositories. It provides a clean, user-friendly interface with automatic version checking and one-click updates.
 
-### 3. Build Rust
-Cargo va télécharger les dépendances au premier build :
+### Key Features
+
+- 🔍 **Auto-detection** - Automatically finds your WoW installation
+- 🔄 **Automatic Updates** - Check for addon updates with one click
+- 📦 **GitHub Integration** - Pull addons directly from GitHub repositories
+- 🎯 **Flexible Update Modes** - Choose between stable releases or development branches
+- 🌍 **Multi-language** - Supports English, French, Spanish, German, Italian, and Portuguese
+- 🔔 **System Notifications** - Get notified when updates are available
+- ⚡ **Background Updates** - Auto-check for updates every hour
+- 🎨 **Modern UI** - Beautiful dark theme with responsive design
+- 🚀 **Self-updating** - The app automatically updates itself
+
+## 📸 Screenshots
+
+### Main Interface
+Clean, modern interface showing addon status at a glance.
+
+### Settings
+Configure WoW path, startup behavior, and language preferences.
+
+### Addon Configuration
+Per-addon settings for update mode (release vs branch) and branch selection.
+
+## 🚀 Installation
+
+### Download
+
+Download the latest release from the [Releases page](https://github.com/Nihilop/Nihui_AppUpdater/releases).
+
+### Install
+
+1. Download the `.msi` installer
+2. Run the installer
+3. Launch Nihui Addon Updater
+4. The app will auto-detect your WoW installation (or you can set it manually)
+
+## 📖 Usage
+
+### First Launch
+
+1. **WoW Path Configuration**
+   - The app will automatically scan for your WoW installation
+   - If not found, manually select your `World of Warcraft` folder
+   - The path should contain `_retail_/Interface/AddOns`
+
+2. **Check for Updates**
+   - The app will automatically check for updates for all installed addons
+   - Updates are shown with an orange badge
+
+3. **Install/Update Addons**
+   - Click the "Update" button to install the latest version
+   - Click "Install" for addons you don't have yet
+
+### Settings
+
+Access settings via the gear icon:
+
+- **Launch on Startup** - Start with Windows
+- **Minimize on Startup** - Start minimized to system tray
+- **Language** - Choose your preferred language
+
+### Per-Addon Configuration
+
+Click the "Configure" button on any addon to:
+
+- Switch between **Release mode** (stable versions) and **Branch mode** (development builds)
+- Select a specific branch to track
+- View addon documentation (README)
+
+## 🎯 Supported Addons
+
+This updater currently manages the following Nihui addons:
+
+- **Nihui_uf** - Unit Frames
+- **Nihui_ab** - Action Bars
+- **Nihui_iv** - Inventory
+- **Nihui_cb** - Cast Bars
+- **Nihui_np** - Nameplates
+- **WaypointUI** - Waypoint UI
+
+## 🔧 Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [pnpm](https://pnpm.io/)
+- [Rust](https://www.rust-lang.org/) (latest stable)
+
+### Setup
+
 ```bash
-cd Nihui_App
-pnpm install  # Si pas déjà fait
+# Clone the repository
+git clone https://github.com/Nihilop/Nihui_AppUpdater.git
+cd Nihui_AppUpdater
+
+# Install dependencies
+pnpm install
+
+# Run in development mode
 pnpm tauri dev
+
+# Build for production
+pnpm tauri build
 ```
 
-## 🔧 Fonctionnalités Implémentées
-
-✅ **Auto-scan WoW path**
-- Scan `C:\`, `D:\`, `E:\`, `F:\` pour Battle.net installs
-- Essaie de lire `%PROGRAMDATA%\Battle.net\Battle.net.config`
-- Fallback sur input manuel si rien trouvé
-
-✅ **Validation path**
-- Vérifie `_retail_/Interface/AddOns` existe
-- Sauvegarde jusqu'à `World of Warcraft\` (pas juste AddOns)
-
-✅ **Lecture versions locales**
-- Scan tous les addons `Nihui_*` dans AddOns/
-- Parse `## Version:` depuis les .toc
-- Gère les addons sans version (marque "unknown")
-
-✅ **GitHub API - Release Mode**
-- Fetch latest release via `/repos/{owner}/{repo}/releases/latest`
-- Compare `tag_name` (en enlevant le "v") avec version locale
-- Affiche "update available" si différent
-
-✅ **GitHub API - Branch Mode**
-- Fetch latest commit SHA via `/repos/{owner}/{repo}/commits/{branch}`
-- Compare avec version locale (si format `commit:abc1234`)
-- Utile pour dev (track les commits)
-
-✅ **UI complète**
-- Dark theme avec Tailwind
-- Status indicators avec emojis
-- Toggle Release/Branch
-- Summary cards (Total / Updates / Status)
-- Tray icon avec tooltip
-
-## 🚧 Features à Implémenter Plus Tard
-
-❌ **Download & Install**
-Le bouton "Update" est disabled pour l'instant. Pour l'implémenter :
-
-1. **Backend Rust** - Ajoute command :
-```rust
-#[tauri::command]
-async fn download_and_install_addon(
-    addon_name: String,
-    zipball_url: String,
-    wow_path: String
-) -> Result<(), String> {
-    // 1. Download zip depuis GitHub
-    // 2. Extract dans temp folder
-    // 3. Backup ancien addon
-    // 4. Copy nouveau addon dans AddOns/
-    // 5. Update .toc version
-    Ok(())
-}
-```
-
-2. **Frontend** - Wire le bouton Update
-
-❌ **Multi-repo support**
-Pour l'instant un seul repo GitHub. Si tu veux séparer les addons :
-- Modifier `AppConfig` pour accepter un `Vec<RepoConfig>`
-- Chaque addon peut pointer vers son propre repo
-
-❌ **Rollback system**
-Garder les backups des versions précédentes et permettre rollback
-
-❌ **Notifications**
-Notifier l'user via le tray icon quand une update est dispo
-
-## 📦 Structure du Projet
+### Project Structure
 
 ```
-Nihui_App/
-├── src/                    # Frontend Vue.js
-│   ├── App.vue            # UI complète (Settings + Update Checker + List)
-│   ├── types.ts           # Types TypeScript
-│   └── services/
-│       └── tauri.ts       # Wrapper pour Tauri commands
-├── src-tauri/             # Backend Rust
+Nihui_AppUpdater/
+├── src/                      # Frontend (Vue.js + TypeScript)
+│   ├── components/
+│   │   └── blocks/          # UI components
+│   ├── locales/             # i18n translations
+│   ├── services/            # API services
+│   └── types.ts             # TypeScript definitions
+├── src-tauri/               # Backend (Rust)
 │   ├── src/
-│   │   ├── lib.rs         # Toutes les Tauri commands
-│   │   └── main.rs        # Entry point
-│   ├── Cargo.toml         # Dépendances Rust
-│   └── tauri.conf.json    # Config Tauri
-└── package.json           # Dépendances npm
+│   │   └── main.rs          # Tauri commands & logic
+│   ├── Cargo.toml           # Rust dependencies
+│   └── tauri.conf.json      # Tauri configuration
+└── .github/
+    └── workflows/           # CI/CD (GitHub Actions)
 ```
 
-## 🧪 Testing
+### Technology Stack
 
-### Test 1 : Auto-scan WoW
-1. Lance l'app : `pnpm tauri dev`
-2. Au démarrage, l'app devrait scanner automatiquement
-3. Si WoW trouvé → affiche le chemin
-4. Si pas trouvé → propose input manuel
+- **Frontend**: Vue 3, TypeScript, Tailwind CSS, Reka UI
+- **Backend**: Rust, Tauri 2.0
+- **Build**: Vite, pnpm
+- **CI/CD**: GitHub Actions
 
-### Test 2 : Lecture addons
-1. Configure le chemin WoW
-2. L'app devrait lister tous les `Nihui_*` avec versions
+## 🤝 Contributing
 
-### Test 3 : Check updates (Release mode)
-1. Clique "Check for Updates"
-2. L'app fetch GitHub releases
-3. Compare avec versions locales
-4. Affiche combien d'updates disponibles
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Test 4 : Check updates (Branch mode)
-1. Toggle vers Branch mode
-2. Clique "Check for Updates"
-3. L'app fetch le dernier commit SHA
-4. Compare avec versions locales
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## ⚠️ Notes Importantes
+## 📝 Version Management
 
-1. **CORS** : GitHub API public, pas besoin de token pour les requêtes simples, mais rate limit à 60/h. Si besoin, ajoute un token dans les headers.
+The app version is centralized in `src-tauri/Cargo.toml`. To release a new version:
 
-2. **Config Storage** : La config est dans :
-    - Windows : `%APPDATA%\nihui_app\config.json`
-    - Editable manuellement si besoin
+1. Update the version in `src-tauri/Cargo.toml`
+2. Commit and push your changes
+3. Create a git tag: `git tag v1.1.0`
+4. Push the tag: `git push origin v1.1.0`
+5. GitHub Actions will automatically build and create a release
 
-3. **Battle.net Config** : Le scan essaie de lire `%PROGRAMDATA%\Battle.net\Battle.net.config`, mais la regex peut ne pas tout capturer. Si auto-scan ne trouve pas, c'est normal, l'user peut entrer manuellement.
+## 🔐 Security
 
-4. **TOC Version Format** : Le regex cherche `## Version: X.Y.Z`, case-insensitive. Fonctionne avec ou sans espaces.
+### Signing Keys
 
-## 🎯 Prochaines Étapes
+Releases are cryptographically signed for security. The signing key is stored securely in GitHub Secrets and never committed to the repository.
 
-1. **Remplace les TODO dans App.vue** (github_owner, github_repo)
-2. **Ajoute ## Version: dans tous les .toc**
-3. **Teste l'auto-scan**
-4. **Teste la lecture des versions locales**
-5. **Push tes addons sur GitHub**
-6. **Crée une release GitHub (tag v0.2.0)**
-7. **Teste le check updates**
+### Update Verification
 
-## 🐛 Debug
+The auto-updater verifies the signature of updates before installation, ensuring that updates come from a trusted source.
 
-Si quelque chose ne marche pas :
+## 📄 License
 
-1. **Console Rust** : Les erreurs backend s'affichent dans le terminal où tu as lancé `pnpm tauri dev`
-2. **Console Browser** : Ouvre DevTools (F12) pour voir les logs frontend
-3. **Config file** : Vérifie `%APPDATA%\nihui_app\config.json`
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Bon test ! 🚀
+## 🙏 Acknowledgments
+
+- Built with [Tauri](https://tauri.app/)
+- UI components from [Reka UI](https://www.reka-ui.com/)
+- Icons from [Lucide](https://lucide.dev/)
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+- Open an [issue](https://github.com/Nihilop/Nihui_AppUpdater/issues)
+- Check existing issues for solutions
+
+---
+
+<div align="center">
+
+Made with ❤️ for the WoW Community
+
+</div>
