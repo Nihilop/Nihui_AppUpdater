@@ -623,6 +623,12 @@ fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+/// Get the current app version
+#[tauri::command]
+fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 // ===========================
 // TRAY ICON RESOURCES
 // ===========================
@@ -861,6 +867,7 @@ fn main() {
             get_tray_icon_path,
             install_addon,
             quit_app,
+            get_app_version,
         ])
         .setup(|app| {
             // Check if app was launched with --minimized flag

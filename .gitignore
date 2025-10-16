@@ -31,3 +31,5 @@ src-tauri/WixTools
 src-tauri/tauri.keypai
 src-tauri/*.key
 src-tauri/*.pem
+.claude
+.vscode

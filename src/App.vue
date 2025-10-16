@@ -46,7 +46,7 @@ const selectedAddon = ref<AddonStatus | null>(null);
 
 // App updater state
 const showUpdateDialog = ref(false);
-const appCurrentVersion = ref('0.1.0');
+const appCurrentVersion = ref('');
 const appNewVersion = ref('');
 let pendingUpdate: any = null;
 
@@ -217,6 +217,14 @@ async function setupTrayIcon() {
 }
 
 onMounted(async () => {
+  // Load app version from backend
+  try {
+    appCurrentVersion.value = await TauriAPI.getAppVersion();
+  } catch (error) {
+    console.error('Failed to get app version:', error);
+    appCurrentVersion.value = '0.1.0'; // Fallback
+  }
+
   // Load config first
   await loadConfig();
 

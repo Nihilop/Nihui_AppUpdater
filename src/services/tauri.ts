@@ -131,4 +131,11 @@ export const TauriAPI = {
   async quitApp(): Promise<void> {
     return await invoke<void>('quit_app');
   },
+
+  /**
+   * Get the current app version
+   */
+  async getAppVersion(): Promise<string> {
+    return await invoke<string>('get_app_version');
+  },
 };

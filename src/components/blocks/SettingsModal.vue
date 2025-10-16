@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { availableLocales } from '@/locales';
+import {AcceptableValue} from "reka-ui";
 
 interface Props {
   open: boolean;
@@ -53,6 +54,12 @@ const handleValidate = () => {
   if (manualPath.value) {
     emit('validateManualPath', manualPath.value);
     manualPath.value = '';
+  }
+};
+
+const handleLanguageChange = (value: AcceptableValue) => {
+  if (value && typeof value === 'string') {
+    emit('update:language', value);
   }
 };
 </script>
@@ -150,7 +157,7 @@ const handleValidate = () => {
         <!-- Language Select -->
         <div class="space-y-2">
           <Label class="text-base">{{ t('settings.language') }}</Label>
-          <Select :model-value="language" @update:modelValue="emit('update:language', $event)">
+          <Select :model-value="language" @update:model-value="handleLanguageChange">
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
