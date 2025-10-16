@@ -1,58 +1,70 @@
 # Gestion de Version - Nihui Addon Updater
 
-## ✨ Version Centralisée
+## ✨ Version Centralisée avec version.json
 
-La version de l'application est maintenant **centralisée** ! Tu n'as qu'à la changer à **UN SEUL ENDROIT**.
+La version de l'application est maintenant **ultra-centralisée** ! Un seul fichier à éditer, un script qui fait tout le reste.
 
 ### 📍 Où changer la version ?
 
-**Fichier unique : `src-tauri/Cargo.toml`**
+**Fichier unique : `version.json` à la racine**
 
-```toml
-[package]
-name = "nihui_app"
-version = "1.0.0"  <-- Change ici uniquement !
+```json
+{
+  "version": "1.0.0"
+}
 ```
 
 ### 🔄 Comment ça fonctionne ?
 
-1. **Backend** : Le backend Rust lit automatiquement la version depuis `Cargo.toml` via `env!("CARGO_PKG_VERSION")`
-2. **Frontend** : Au démarrage, le frontend appelle `TauriAPI.getAppVersion()` qui demande la version au backend
-3. **Auto-updater** : Utilise cette version pour comparer avec les releases GitHub
+1. **version.json** : Source de vérité unique pour le numéro de version
+2. **Script de sync** : Met à jour automatiquement tous les fichiers nécessaires
+   - `src-tauri/Cargo.toml` - Version du package Rust
+   - `src-tauri/tauri.conf.json` - Version de configuration Tauri
+3. **Backend** : Lit la version depuis `Cargo.toml` via `env!("CARGO_PKG_VERSION")`
+4. **Frontend** : Appelle `TauriAPI.getAppVersion()` pour afficher la version
+5. **Auto-updater** : Compare avec les releases GitHub
 
 ### 🚀 Workflow de montée de version
 
 #### Étape 1 : Change la version
-```bash
-# Édite src-tauri/Cargo.toml
-version = "1.1.0"  # Nouvelle version
+```json
+// Édite version.json
+{
+  "version": "1.1.0"
+}
 ```
 
-#### Étape 2 : Commit et push
+#### Étape 2 : Synchronise automatiquement
+```bash
+pnpm version:sync
+```
+
+Le script va :
+- ✓ Mettre à jour `src-tauri/Cargo.toml`
+- ✓ Mettre à jour `src-tauri/tauri.conf.json`
+- ✓ T'afficher les commandes git à exécuter
+
+#### Étape 3 : Commit et tag (commandes affichées par le script)
 ```bash
 git add .
-git commit -m "Bump version to v1.1.0"
-git push origin main
-```
-
-#### Étape 3 : Créer un tag
-```bash
+git commit -m "chore: bump version to 1.1.0"
 git tag v1.1.0
-git push origin v1.1.0
+git push origin main --tags
 ```
 
 #### Étape 4 : GitHub Actions fait le reste !
 - Build automatique
 - Signature
 - Création de la release
-- Upload des fichiers
+- Upload des fichiers (.msi, .nsis, latest.json)
 
 ### 🎯 Avec GitHub Desktop
 
-1. **Change la version** dans `src-tauri/Cargo.toml`
-2. **Commit les changements** dans GitHub Desktop
-3. **Push vers GitHub**
-4. **Créer le tag** :
+1. **Change la version** dans `version.json`
+2. **Lance le script** : `pnpm version:sync`
+3. **Commit les changements** dans GitHub Desktop
+4. **Push vers GitHub**
+5. **Créer le tag** :
    - Dans GitHub Desktop : Menu `Repository` → `Create Tag...`
    - Nom du tag : `v1.1.0` (avec le `v` !)
    - Clique sur "Create Tag"
@@ -72,18 +84,13 @@ $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = "ton_mot_de_passe"
 pnpm tauri build
 ```
 
-### ⚠️ Note importante sur tauri.conf.json
+### ⚠️ Note importante sur la synchronisation
 
-Le fichier `tauri.conf.json` contient aussi une version, mais elle **n'est plus utilisée** pour l'auto-updater. Tu peux la laisser synchronisée manuellement si tu veux, mais ce n'est pas obligatoire. La source de vérité est `Cargo.toml`.
+Le script `pnpm version:sync` met automatiquement à jour :
+- `src-tauri/Cargo.toml` → Source de vérité pour le backend
+- `src-tauri/tauri.conf.json` → Utilisé pour le bundle et les releases
 
-Si tu veux synchroniser les deux, tu peux faire :
-
-```json
-// src-tauri/tauri.conf.json
-{
-  "version": "1.1.0"  <-- Optionnel, peut rester différent
-}
-```
+**Plus besoin de toucher ces fichiers manuellement !** Le script s'occupe de tout.
 
 ### 🐛 Dépannage
 
