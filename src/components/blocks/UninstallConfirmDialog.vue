@@ -30,7 +30,6 @@ const emit = defineEmits<{
 const isUninstalling = ref(false);
 
 const handleConfirm = () => {
-  isUninstalling.value = true;
   emit('confirm');
 };
 </script>
